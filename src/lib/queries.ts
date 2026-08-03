@@ -206,3 +206,61 @@ export function logActivity(actorId: string | undefined, action: string, entityT
     .from("activity_logs")
     .insert({ actor_id: actorId, action, entity_type: entityType ?? null, entity_id: entityId ?? null });
 }
+
+/** Fetch a single profile by user ID (for showing linked account info). */
+export function useProfile(userId?: string | null) {
+  return useQuery({
+    queryKey: ["profile", userId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url, phone")
+        .eq("id", userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: Boolean(userId),
+  });
+}
+
+/** All profiles whose user_id is NOT yet linked to any agent (plus optionally the current one). */
+export function useUnlinkedProfiles(currentLinkedId?: string | null) {
+  return useQuery({
+    queryKey: ["unlinked-profiles", currentLinkedId],
+    queryFn: async () => {
+      const [{ data: profiles, error: pErr }, { data: linked, error: lErr }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name, email"),
+        supabase.from("agents").select("user_id").not("user_id", "is", null),
+      ]);
+      if (pErr) throw pErr;
+      if (lErr) throw lErr;
+      const linkedIds = new Set((linked ?? []).map((a) => a.user_id).filter(Boolean));
+      // include profiles that are not linked, or that are the current one (so we don't hide it)
+      return (profiles ?? []).filter(
+        (p) => !linkedIds.has(p.id) || p.id === currentLinkedId,
+      );
+    },
+  });
+}
+
+/** Link (or unlink) a user account to an agent by setting agents.user_id. */
+export function useLinkAgent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ agentId, userId }: { agentId: string; userId: string | null }) => {
+      const { error } = await supabase
+        .from("agents")
+        .update({ user_id: userId } as AgentUpdate)
+        .eq("id", agentId);
+      if (error) throw error;
+    },
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: ["agents"] });
+      void qc.invalidateQueries({ queryKey: ["agent", vars.agentId] });
+      void qc.invalidateQueries({ queryKey: ["my-agent"] });
+      void qc.invalidateQueries({ queryKey: ["unlinked-profiles"] });
+      void qc.invalidateQueries({ queryKey: ["profile", vars.userId] });
+    },
+  });
+}
