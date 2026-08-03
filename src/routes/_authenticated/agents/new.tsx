@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { AgentForm } from "@/components/agents/AgentForm";
-import { useCreateAgent } from "@/lib/queries";
+import { useSaveAgent } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/agents/new")({
   head: () => ({
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/agents/new")({
 
 function NewAgent() {
   const navigate = useNavigate();
-  const create = useCreateAgent();
+  const save = useSaveAgent();
 
   return (
     <div className="space-y-5">
@@ -29,11 +29,11 @@ function NewAgent() {
         </p>
       </header>
       <AgentForm
-        submitting={create.isPending}
+        saving={save.isPending}
         onSubmit={async (payload) => {
           try {
-            const row = await create.mutateAsync(payload);
-            toast.success(`Agent created — ${row.employee_id}`);
+            const row = await save.mutateAsync({ values: payload as never });
+            toast.success("Agent created successfully");
             void navigate({ to: "/agents/$agentId", params: { agentId: row.id } });
           } catch (e) {
             toast.error(e instanceof Error ? e.message : "Could not create agent");
