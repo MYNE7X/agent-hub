@@ -35,22 +35,34 @@ function AttendancePage() {
   const refresh = () => void qc.invalidateQueries({ queryKey: ["attendance"] });
 
   const clockIn = async () => {
-    if (!myAgent) return toast.error("No agent profile linked to your account");
+    if (!myAgent) {
+      toast.error("No agent profile linked to your account");
+      return;
+    }
     const { error } = await supabase
       .from("attendance")
       .insert({ agent_id: myAgent.id, date, clock_in: new Date().toISOString(), created_by: user?.id ?? null });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Clocked in");
     refresh();
   };
 
   const clockOut = async () => {
-    if (!mine) return toast.error("You have not clocked in yet");
+    if (!mine) {
+      toast.error("You have not clocked in yet");
+      return;
+    }
     const { error } = await supabase
       .from("attendance")
       .update({ clock_out: new Date().toISOString() })
       .eq("id", mine.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Clocked out");
     refresh();
   };
