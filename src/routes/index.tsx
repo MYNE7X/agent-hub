@@ -46,7 +46,10 @@ function AuthPage() {
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Welcome back to Billzo");
     void router.navigate({ to: "/dashboard" });
   };
@@ -60,7 +63,10 @@ function AuthPage() {
       options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
     });
     setBusy(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     toast.success("Account created. You can sign in now.");
   };
 
