@@ -152,31 +152,33 @@ function AdminsAndRolesPage() {
 
       {/* ───────────── TABS ───────────── */}
       <Tabs value={tab} onValueChange={setTab} className="space-y-5">
-        <TabsList className="bg-secondary/50">
-          <TabsTrigger value="staff" className="gap-1.5">
-            <ShieldHalf className="size-3.5" /> Staff
-            <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
-              {staff.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger value="users" className="gap-1.5">
-            <Users className="size-3.5" /> All Users
-            <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
-              {allUsers.length}
-            </span>
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="gap-1.5">
-            <Clock className="size-3.5" /> Pending
-            {counts.pending > 0 && (
-              <span className="ml-1 rounded-full bg-destructive/20 px-1.5 py-0.5 text-[10px] font-semibold text-destructive">
-                {counts.pending}
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full bg-secondary/50">
+            <TabsTrigger value="staff" className="gap-1.5">
+              <ShieldHalf className="size-3.5" /> Staff
+              <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
+                {staff.length}
               </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="gap-1.5">
-            <Activity className="size-3.5" /> Activity Log
-          </TabsTrigger>
-        </TabsList>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-1.5">
+              <Users className="size-3.5" /> All Users
+              <span className="ml-1 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-semibold">
+                {allUsers.length}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="gap-1.5">
+              <Clock className="size-3.5" /> Pending
+              {counts.pending > 0 && (
+                <span className="ml-1 rounded-full bg-destructive/20 px-1.5 py-0.5 text-[10px] font-semibold text-destructive">
+                  {counts.pending}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-1.5">
+              <Activity className="size-3.5" /> Activity Log
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ───────────── STAFF TAB ───────────── */}
         <TabsContent value="staff" className="space-y-4">

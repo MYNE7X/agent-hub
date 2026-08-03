@@ -52,12 +52,14 @@ function AgentDetail() {
       </header>
 
       <Tabs defaultValue="profile">
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          {isStaff && <TabsTrigger value="account">Link Account</TabsTrigger>}
-          {isSuperAdmin && <TabsTrigger value="login">Login / Password</TabsTrigger>}
-        </TabsList>
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+            {isStaff && <TabsTrigger value="account">Link Account</TabsTrigger>}
+            {isSuperAdmin && <TabsTrigger value="login">Login / Password</TabsTrigger>}
+          </TabsList>
+        </div>
 
         <TabsContent value="profile" className="mt-4">
           <AgentForm

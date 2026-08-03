@@ -350,13 +350,15 @@ function MyProfilePage() {
 
       {/* ── TABS ── */}
       <Tabs defaultValue="personal" className="space-y-4">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="personal"><User className="size-3.5" /> Personal</TabsTrigger>
-          <TabsTrigger value="employment"><Briefcase className="size-3.5" /> Employment</TabsTrigger>
-          <TabsTrigger value="attendance"><Calendar className="size-3.5" /> Attendance</TabsTrigger>
-          <TabsTrigger value="salary"><Banknote className="size-3.5" /> Salary</TabsTrigger>
-          <TabsTrigger value="documents"><FileText className="size-3.5" /> Documents</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto pb-1">
+          <TabsList className="w-max min-w-full sm:w-auto">
+            <TabsTrigger value="personal"><User className="size-3.5" /> Personal</TabsTrigger>
+            <TabsTrigger value="employment"><Briefcase className="size-3.5" /> Employment</TabsTrigger>
+            <TabsTrigger value="attendance"><Calendar className="size-3.5" /> Attendance</TabsTrigger>
+            <TabsTrigger value="salary"><Banknote className="size-3.5" /> Salary</TabsTrigger>
+            <TabsTrigger value="documents"><FileText className="size-3.5" /> Documents</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* PERSONAL TAB */}
         <TabsContent value="personal" className="glass rounded-xl p-5 space-y-5">
