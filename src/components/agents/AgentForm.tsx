@@ -26,6 +26,54 @@ import { useDepartments, useDesignations, useStaffProfiles, type AgentWithRefs }
 
 export type AgentFormValues = Record<string, unknown>;
 
+type AgentFormState = {
+  full_name: string;
+  father_name: string;
+  cnic_number: string;
+  passport_number: string;
+  date_of_birth: string;
+  gender: string;
+  blood_group: string;
+  marital_status: string;
+  profile_picture_url: string;
+  cnic_front_url: string;
+  cnic_back_url: string;
+  passport_url: string;
+  phone_number: string;
+  whatsapp_number: string;
+  email: string;
+  emergency_contact_name: string;
+  emergency_contact_number: string;
+  home_address: string;
+  city: string;
+  province: string;
+  country: string;
+  department_id: string;
+  designation_id: string;
+  joining_date: string;
+  employee_type: string;
+  shift_timing: string;
+  assigned_admin_id: string;
+  status: string;
+  highest_qualification: string;
+  institute_name: string;
+  degree: string;
+  certifications: string;
+  previous_experience: string;
+  previous_company: string;
+  skills: string;
+  languages: string;
+  notes: string;
+  bank_name: string;
+  account_title: string;
+  account_number: string;
+  iban: string;
+  salary: string | number;
+};
+
+type ImageKey = "profile_picture_url" | "cnic_front_url" | "cnic_back_url" | "passport_url";
+
+
 const NONE = "__none__";
 
 function Field({
@@ -66,7 +114,7 @@ export function AgentForm({
   const { data: staff } = useStaffProfiles();
   const admins = (staff ?? []).filter((s) => s.roles.includes("admin") || s.roles.includes("super_admin"));
 
-  const [values, setValues] = useState<Record<string, any>>({
+  const [values, setValues] = useState<AgentFormState>({
     full_name: agent?.full_name ?? "",
     father_name: agent?.father_name ?? "",
     cnic_number: agent?.cnic_number ?? "",
@@ -112,9 +160,10 @@ export function AgentForm({
   });
   const [uploading, setUploading] = useState<string | null>(null);
 
-  const set = (key: string, value: unknown) => setValues((v) => ({ ...v, [key]: value }));
+  const set = (key: keyof AgentFormState, value: string | number) =>
+    setValues((v) => ({ ...v, [key]: value }) as AgentFormState);
 
-  const handleImage = async (key: string, category: string, file: File) => {
+  const handleImage = async (key: ImageKey, category: string, file: File) => {
     if (!agent?.id) {
       toast.error("Save the agent first, then upload images.");
       return;
@@ -125,7 +174,7 @@ export function AgentForm({
         agentId: agent.id,
         category,
         file,
-        uploadedBy: user?.id,
+        uploadedBy: user?.id ?? null,
       });
       set(key, path);
       toast.success("File uploaded");
@@ -150,7 +199,7 @@ export function AgentForm({
     await onSubmit(payload);
   };
 
-  const imageSlot = (key: string, label: string, category: string) => (
+  const imageSlot = (key: ImageKey, label: string, category: string) => (
     <Field label={label}>
       <div className="flex items-center gap-3">
         <SecureImage
@@ -288,7 +337,7 @@ export function AgentForm({
           <Grid>
             <Field label="Department">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.department_id || NONE}
                 onValueChange={(v) => set("department_id", v === NONE ? "" : v)}
               >
@@ -302,7 +351,7 @@ export function AgentForm({
             </Field>
             <Field label="Designation">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.designation_id || NONE}
                 onValueChange={(v) => set("designation_id", v === NONE ? "" : v)}
               >
@@ -317,14 +366,14 @@ export function AgentForm({
             <Field label="Joining Date">
               <Input
                 type="date"
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.joining_date}
                 onChange={(e) => set("joining_date", e.target.value)}
               />
             </Field>
             <Field label="Employee Type">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.employee_type || NONE}
                 onValueChange={(v) => set("employee_type", v === NONE ? "" : v)}
               >
@@ -338,7 +387,7 @@ export function AgentForm({
             </Field>
             <Field label="Shift Timing">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.shift_timing || NONE}
                 onValueChange={(v) => set("shift_timing", v === NONE ? "" : v)}
               >
@@ -352,7 +401,7 @@ export function AgentForm({
             </Field>
             <Field label="Assigned Admin">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.assigned_admin_id || NONE}
                 onValueChange={(v) => set("assigned_admin_id", v === NONE ? "" : v)}
               >
@@ -368,14 +417,14 @@ export function AgentForm({
               <Input
                 type="number"
                 min={0}
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.salary}
                 onChange={(e) => set("salary", e.target.value)}
               />
             </Field>
             <Field label="Status">
               <Select
-                disabled={readOnlyEmployment}
+                disabled={Boolean(readOnlyEmployment)}
                 value={values.status}
                 onValueChange={(v) => set("status", v)}
               >
