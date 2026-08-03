@@ -364,6 +364,67 @@ export function useInsertAttendance() {
   });
 }
 
+// ── Monthly Sales ─────────────────────────────────────────────────────────────
+
+export type MonthlySale = Database["public"]["Tables"]["agent_monthly_sales"]["Row"];
+
+export function useAgentMonthlySales(agentId?: string) {
+  return useQuery({
+    queryKey: ["monthly-sales", agentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agent_monthly_sales")
+        .select("*")
+        .eq("agent_id", agentId!)
+        .order("month", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as MonthlySale[];
+    },
+    enabled: Boolean(agentId),
+  });
+}
+
+export function useUpsertMonthlySale() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      agentId,
+      month,
+      amount,
+      notes,
+      createdBy,
+    }: {
+      agentId: string;
+      month: string; // "YYYY-MM-01"
+      amount: number;
+      notes?: string;
+      createdBy?: string | null;
+    }) => {
+      const { error } = await supabase.from("agent_monthly_sales").upsert(
+        { agent_id: agentId, month, amount, notes: notes ?? null, created_by: createdBy ?? null, updated_at: new Date().toISOString() },
+        { onConflict: "agent_id,month" },
+      );
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      void qc.invalidateQueries({ queryKey: ["monthly-sales", vars.agentId] });
+    },
+  });
+}
+
+export function useDeleteMonthlySale() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, agentId }: { id: string; agentId: string }) => {
+      const { error } = await supabase.from("agent_monthly_sales").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      void qc.invalidateQueries({ queryKey: ["monthly-sales", vars.agentId] });
+    },
+  });
+}
+
 /** Link (or unlink) a user account to an agent by setting agents.user_id. */
 export function useLinkAgent() {
   const qc = useQueryClient();

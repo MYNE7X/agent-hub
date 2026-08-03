@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AgentForm } from "@/components/agents/AgentForm";
 import { DocumentManager } from "@/components/agents/DocumentManager";
 import { LinkAccountPanel } from "@/components/agents/LinkAccountPanel";
+import { MonthlySalesPanel } from "@/components/agents/MonthlySalesPanel";
 import { SetPasswordPanel } from "@/components/agents/SetPasswordPanel";
 import { StatusBadge } from "@/components/billzo/StatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -56,6 +57,7 @@ function AgentDetail() {
           <TabsList className="w-max min-w-full">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            {isStaff && <TabsTrigger value="sales">Monthly Sales</TabsTrigger>}
             {isStaff && <TabsTrigger value="account">Link Account</TabsTrigger>}
             {isSuperAdmin && <TabsTrigger value="login">Login / Password</TabsTrigger>}
           </TabsList>
@@ -80,6 +82,20 @@ function AgentDetail() {
         <TabsContent value="documents" className="mt-4">
           <DocumentManager agentId={agentId} />
         </TabsContent>
+
+        {isStaff && (
+          <TabsContent value="sales" className="mt-4">
+            <div className="glass rounded-xl p-5">
+              <div className="mb-5">
+                <h2 className="font-semibold">Monthly Sales</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Track and manage this agent's monthly sales figures.
+                </p>
+              </div>
+              <MonthlySalesPanel agentId={agentId} />
+            </div>
+          </TabsContent>
+        )}
 
         {isStaff && (
           <TabsContent value="account" className="mt-4">
