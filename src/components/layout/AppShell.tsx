@@ -139,6 +139,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
 
+      {/* Creator badge */}
+      <CreatorBadge />
+
       {/* Profile card */}
       <div className="glass rounded-xl p-3">
         <div className="flex items-center gap-3">
@@ -164,9 +167,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           <LogOut className="size-4" /> Sign out
         </Button>
       </div>
-
-      {/* Creator badge */}
-      <CreatorBadge />
     </div>
   );
 
