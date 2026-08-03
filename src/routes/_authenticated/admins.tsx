@@ -44,6 +44,13 @@ export const Route = createFileRoute("/_authenticated/admins")({
  *  pending approvals inline, activity timeline.
  * ============================================================ */
 
+// Accounts in this list are fully protected: no super admin can change,
+// remove, or assign roles for them, force a password change, or send a
+// reset email from this screen. Only their profile is shown.
+const PROTECTED_EMAILS = ["myne7x@gmail.com"];
+const isProtectedUser = (email: string | null | undefined) =>
+  !!email && PROTECTED_EMAILS.includes(email.toLowerCase());
+
 function AdminsAndRolesPage() {
   const { isSuperAdmin, profile } = useAuth();
   const navigate = useNavigate();
@@ -252,46 +259,53 @@ function AdminsAndRolesPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {allUsers.map((u) => (
-                      <tr key={u.id} className="transition-colors hover:bg-secondary/20">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="size-8">
-                              <AvatarFallback className="bg-primary/15 text-[11px] text-primary">
-                                {initials(u.full_name ?? u.email)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{u.full_name ?? "—"}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{u.email ?? "—"}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap gap-1">
-                            {u.roles.length === 0 ? (
-                              <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
-                                no role
+                    {allUsers.map((u) => {
+                      const protectedUser = isProtectedUser(u.email);
+                      return (
+                        <tr key={u.id} className="transition-colors hover:bg-secondary/20">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="size-8">
+                                <AvatarFallback className="bg-primary/15 text-[11px] text-primary">
+                                  {initials(u.full_name ?? u.email)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium">{u.full_name ?? "—"}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{u.email ?? "—"}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-wrap gap-1">
+                              {u.roles.length === 0 ? (
+                                <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] text-muted-foreground">
+                                  no role
+                                </span>
+                              ) : (
+                                u.roles.map((r) => <RoleBadge key={r} role={r} />)
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {u.is_approved ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 ring-1 ring-emerald-500/25">
+                                <CheckCircle2 className="size-3" /> Approved
                               </span>
                             ) : (
-                              u.roles.map((r) => <RoleBadge key={r} role={r} />)
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/25">
+                                <Clock className="size-3" /> Pending
+                              </span>
                             )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {u.is_approved ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold text-emerald-400 ring-1 ring-emerald-500/25">
-                              <CheckCircle2 className="size-3" /> Approved
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400 ring-1 ring-amber-500/25">
-                              <Clock className="size-3" /> Pending
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <UserActionMenu userId={u.id} email={u.email} name={u.full_name} roles={u.roles} />
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {protectedUser ? (
+                              <ProtectedBadge />
+                            ) : (
+                              <UserActionMenu userId={u.id} email={u.email} name={u.full_name} roles={u.roles} />
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -368,6 +382,7 @@ function StaffCard({
   currentUserId?: string;
 }) {
   const isSelf = user.id === currentUserId;
+  const protectedUser = isProtectedUser(user.email);
   const primaryRole: AppRole = user.roles.includes("super_admin")
     ? "super_admin"
     : user.roles.includes("admin")
@@ -407,13 +422,17 @@ function StaffCard({
               </div>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.email ?? "—"}</p>
             </div>
-            <UserActionMenu
-              userId={user.id}
-              email={user.email}
-              name={user.full_name}
-              roles={user.roles}
-              isSelf={isSelf}
-            />
+            {protectedUser ? (
+              <ProtectedBadge />
+            ) : (
+              <UserActionMenu
+                userId={user.id}
+                email={user.email}
+                name={user.full_name}
+                roles={user.roles}
+                isSelf={isSelf}
+              />
+            )}
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -429,10 +448,27 @@ function StaffCard({
                 <KeyRound className="size-2.5" /> Must change pw
               </span>
             )}
+            {protectedUser && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground ring-1 ring-border/50">
+                <Lock className="size-2.5" /> Protected account
+              </span>
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+/* ============================================================
+ *  Protected Badge — shown instead of the action menu for
+ *  accounts in PROTECTED_EMAILS. Profile-only, no actions.
+ * ============================================================ */
+function ProtectedBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/40 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+      <Lock className="size-3" /> Protected
+    </span>
   );
 }
 
@@ -568,7 +604,10 @@ function AssignRoleDialog({ trigger }: { trigger: React.ReactNode }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [role, setRoleValue] = useState<AppRole>("admin");
 
-  const filtered = allUsers.filter((u) => {
+  // Protected accounts never appear as assignable targets here.
+  const assignableUsers = allUsers.filter((u) => !isProtectedUser(u.email));
+
+  const filtered = assignableUsers.filter((u) => {
     const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
@@ -584,7 +623,7 @@ function AssignRoleDialog({ trigger }: { trigger: React.ReactNode }) {
     }
     try {
       await setRole.mutateAsync({ userId: selected, role });
-      const u = allUsers.find((x) => x.id === selected);
+      const u = assignableUsers.find((x) => x.id === selected);
       toast.success(`${u?.full_name ?? u?.email ?? "User"} is now ${labelize(role)}.`);
       setOpen(false);
       setSelected(null);
