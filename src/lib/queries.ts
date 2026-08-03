@@ -165,6 +165,27 @@ export function useAttendance(date: string) {
   });
 }
 
+/** Fetch all attendance records between two dates (inclusive). Used for month view. */
+export function useAttendanceRange(from: string, to: string) {
+  return useQuery({
+    queryKey: ["attendance-range", from, to],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("attendance")
+        .select(
+          "*, agents:agent_id(id, full_name, employee_id, profile_picture_url, department_id, departments:department_id(name))",
+        )
+        .gte("date", from)
+        .lte("date", to)
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as AttendanceRow[];
+    },
+    enabled: Boolean(from && to),
+  });
+}
+
 export function useAgentAttendanceHistory(agentId?: string, limit = 60) {
   return useQuery({
     queryKey: ["attendance-history", agentId, limit],
