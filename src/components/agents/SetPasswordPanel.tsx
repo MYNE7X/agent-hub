@@ -193,10 +193,10 @@ export function SetPasswordPanel({ agentId, agentEmail, agentName, currentUserId
  *
  *  We cannot change their Supabase Auth password from the browser with
  *  the anon key — that requires the service-role key / an Edge Function.
- *  Instead we offer two options:
- *   1. Mark the account for forced-password-change on next login.
- *   2. Send a Supabase password-reset email so the agent can set a new
- *      password themselves via the email link.
+ *  Instead we offer:
+ *   A) One-click "Reset Access" — marks forced change + sends reset email together.
+ *   B) Manual: mark for forced-change only (agent still uses current password until they log in).
+ *   C) Manual: send reset email only.
  */
 function ForceResetPanel({
   userId,
@@ -207,23 +207,58 @@ function ForceResetPanel({
   agentEmail?: string | null | undefined;
   agentName: string;
 }) {
+  const [busyQuick, setBusyQuick] = useState(false);
   const [busyFlag, setBusyFlag] = useState(false);
   const [busyEmail, setBusyEmail] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const handleMarkForReset = async () => {
-    if (!userId) return;
+  const markForReset = async (): Promise<boolean> => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ must_change_password: true })
+      .eq("id", userId);
+    if (error) throw error;
+    return true;
+  };
+
+  const sendResetEmail = async (): Promise<boolean> => {
+    if (!agentEmail) throw new Error("No email on file for this agent.");
+    const { error } = await supabase.auth.resetPasswordForEmail(agentEmail, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    if (error) throw error;
+    return true;
+  };
+
+  /** Quick reset: mark forced change + send email in one shot */
+  const handleQuickReset = async () => {
+    setBusyQuick(true);
+    try {
+      await markForReset();
+      if (agentEmail) {
+        await sendResetEmail();
+        toast.success(
+          `Password reset email sent to ${agentEmail}. ${agentName} must set a new password on next login.`,
+          { duration: 8000 }
+        );
+      } else {
+        toast.success(
+          `${agentName} will be prompted to set a new password on their next login.`,
+          { duration: 6000 }
+        );
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not reset access.");
+    } finally {
+      setBusyQuick(false);
+    }
+  };
+
+  const handleMarkOnly = async () => {
     setBusyFlag(true);
     try {
-      // Staff are allowed to set must_change_password = true (trigger permits it)
-      const { error } = await supabase
-        .from("profiles")
-        .update({ must_change_password: true })
-        .eq("id", userId);
-      if (error) throw error;
-      toast.success(
-        `${agentName} will be asked to set a new password on their next login.`,
-        { duration: 6000 }
-      );
+      await markForReset();
+      toast.success(`${agentName} will be asked to set a new password on their next login.`, { duration: 6000 });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not set flag.");
     } finally {
@@ -231,17 +266,10 @@ function ForceResetPanel({
     }
   };
 
-  const handleSendResetEmail = async () => {
-    if (!agentEmail) {
-      toast.error("No email address on file for this agent.");
-      return;
-    }
+  const handleEmailOnly = async () => {
     setBusyEmail(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(agentEmail, {
-        redirectTo: `${window.location.origin}/`,
-      });
-      if (error) throw error;
+      await sendResetEmail();
       toast.success(`Password reset email sent to ${agentEmail}.`, { duration: 6000 });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send reset email.");
@@ -252,56 +280,98 @@ function ForceResetPanel({
 
   return (
     <div className="space-y-4">
+      {/* Status banner */}
       <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 text-sm text-amber-300/80 space-y-1">
         <p className="font-semibold text-amber-300 flex items-center gap-2">
           <ShieldAlert className="size-4" /> Account already linked
         </p>
         <p>
-          This agent already has a login account. Use one (or both) of the options below to require them
-          to set a new password.
+          <strong>{agentName}</strong> already has a login account
+          {agentEmail ? <> (<span className="font-mono text-xs">{agentEmail}</span>)</> : ""}.
+          Use the options below to reset their access.
         </p>
       </div>
 
-      {/* Option 1: mark for forced change on next login */}
-      <div className="rounded-xl border border-border/50 p-4 space-y-3">
+      {/* ── Primary: Quick Reset (recommended) ── */}
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-3">
         <div>
-          <p className="font-medium text-sm">Option 1 — Force change on next login</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            The agent can log in with their current password, but will immediately be asked to set a new one
-            before accessing the system. Their current password remains valid until they change it.
+          <p className="font-semibold text-sm flex items-center gap-1.5">
+            <KeyRound className="size-4 text-primary" />
+            Set New Temporary Password (Recommended)
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Locks the account so the agent <strong>must set a new password</strong> on next login,
+            and simultaneously sends them a password-reset link via email.
+            Share the reset email link with the agent — once they click it, they set their own
+            new password immediately.
           </p>
         </div>
         <Button
-          variant="outline"
-          className="w-full border-amber-500/30 text-amber-300 hover:bg-amber-500/10"
-          onClick={handleMarkForReset}
-          disabled={busyFlag}
+          className="w-full"
+          onClick={handleQuickReset}
+          disabled={busyQuick}
         >
-          {busyFlag ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
-          Mark Account for Forced Password Change
+          {busyQuick ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <KeyRound className="size-4" />
+          )}
+          Reset Access{agentEmail ? " & Send Reset Email" : ""}
         </Button>
       </div>
 
-      {/* Option 2: send Supabase password reset email */}
-      <div className="rounded-xl border border-border/50 p-4 space-y-3">
-        <div>
-          <p className="font-medium text-sm">Option 2 — Send password reset email</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Supabase sends a secure reset link to <strong>{agentEmail ?? "their email"}</strong>. The agent
-            clicks the link to set a new password immediately. Their current password is invalidated once
-            they complete the reset.
-          </p>
+      {/* ── Advanced: individual options ── */}
+      <button
+        type="button"
+        onClick={() => setShowAdvanced((v) => !v)}
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {showAdvanced ? "▲ Hide" : "▼ Show"} individual options
+      </button>
+
+      {showAdvanced && (
+        <div className="space-y-3 pt-1">
+          {/* Force flag only */}
+          <div className="rounded-xl border border-border/50 p-4 space-y-3">
+            <div>
+              <p className="font-medium text-sm">Force change on next login (no email)</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Agent can still log in with their current password, but will immediately be
+                prompted to create a new one before accessing anything.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full border-amber-500/30 text-amber-300 hover:bg-amber-500/10"
+              onClick={handleMarkOnly}
+              disabled={busyFlag}
+            >
+              {busyFlag ? <Loader2 className="size-4 animate-spin" /> : <ShieldAlert className="size-4" />}
+              Mark for Forced Password Change
+            </Button>
+          </div>
+
+          {/* Email only */}
+          <div className="rounded-xl border border-border/50 p-4 space-y-3">
+            <div>
+              <p className="font-medium text-sm">Send password reset email only</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Sends a secure link to <strong>{agentEmail ?? "their email"}</strong>.
+                The agent clicks the link to set a completely new password.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleEmailOnly}
+              disabled={busyEmail || !agentEmail}
+            >
+              {busyEmail ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
+              Send Password Reset Email
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          className="w-full"
-          onClick={handleSendResetEmail}
-          disabled={busyEmail || !agentEmail}
-        >
-          {busyEmail ? <Loader2 className="size-4 animate-spin" /> : <Mail className="size-4" />}
-          Send Password Reset Email
-        </Button>
-      </div>
+      )}
     </div>
   );
 }

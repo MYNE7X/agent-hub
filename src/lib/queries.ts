@@ -278,6 +278,92 @@ export function useApproveUser() {
   });
 }
 
+type AttendanceStatus = Database["public"]["Enums"]["attendance_status"];
+
+/** Update an existing attendance record (admin adjustment). */
+export function useUpdateAttendance() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      values,
+    }: {
+      id: string;
+      values: {
+        clock_in?: string | null;
+        clock_out?: string | null;
+        status?: AttendanceStatus | null;
+        notes?: string | null;
+      };
+    }) => {
+      // Recalculate total_hours when both times are provided
+      let total_hours: number | null = null;
+      if (values.clock_in && values.clock_out) {
+        total_hours =
+          (new Date(values.clock_out).getTime() - new Date(values.clock_in).getTime()) /
+          3_600_000;
+        if (total_hours < 0) total_hours = null;
+      }
+      const { status, notes, clock_in, clock_out } = values;
+      const { error } = await supabase
+        .from("attendance")
+        .update({
+          ...(clock_in !== undefined ? { clock_in } : {}),
+          ...(clock_out !== undefined ? { clock_out } : {}),
+          ...(status != null ? { status } : {}),
+          ...(notes !== undefined ? { notes } : {}),
+          ...(total_hours !== null ? { total_hours } : {}),
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["attendance"] }),
+  });
+}
+
+/** Insert a manual attendance record for any agent (admin-only action). */
+export function useInsertAttendance() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      agent_id,
+      date,
+      clock_in,
+      clock_out,
+      status,
+      notes,
+      created_by,
+    }: {
+      agent_id: string;
+      date: string;
+      clock_in?: string | null;
+      clock_out?: string | null;
+      status?: AttendanceStatus | null;
+      notes?: string | null;
+      created_by?: string | null;
+    }) => {
+      let total_hours: number | null = null;
+      if (clock_in && clock_out) {
+        total_hours =
+          (new Date(clock_out).getTime() - new Date(clock_in).getTime()) / 3_600_000;
+        if (total_hours < 0) total_hours = null;
+      }
+      const { error } = await supabase.from("attendance").insert({
+        agent_id,
+        date,
+        ...(clock_in != null ? { clock_in } : {}),
+        ...(clock_out != null ? { clock_out } : {}),
+        ...(status != null ? { status } : {}),
+        ...(notes != null ? { notes } : {}),
+        ...(total_hours !== null ? { total_hours } : {}),
+        ...(created_by != null ? { created_by } : {}),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: ["attendance"] }),
+  });
+}
+
 /** Link (or unlink) a user account to an agent by setting agents.user_id. */
 export function useLinkAgent() {
   const qc = useQueryClient();
