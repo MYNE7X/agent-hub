@@ -54,7 +54,7 @@ export function DocumentManager({ agentId }: { agentId: string }) {
       toast.success("File replaced");
       setReplacing(null);
       refresh();
-      return path;
+      void path;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Replace failed");
     } finally {
@@ -160,10 +160,12 @@ export function DocumentManager({ agentId }: { agentId: string }) {
 
       <ImagePreviewModal
         open={Boolean(preview)}
-        onOpenChange={(v) => !v && setPreview(null)}
+        onOpenChange={(v) => {
+          if (!v) setPreview(null);
+        }}
         url={preview?.url ?? null}
-        name={preview?.doc.file_name}
-        type={preview?.doc.file_type}
+        name={preview?.doc.file_name ?? null}
+        type={preview?.doc.file_type ?? null}
       />
     </div>
   );
