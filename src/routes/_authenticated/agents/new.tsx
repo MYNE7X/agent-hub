@@ -5,14 +5,6 @@ import { AgentForm } from "@/components/agents/AgentForm";
 import { useSaveAgent } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/agents/new")({
-  head: () => ({
-    meta: [
-      { title: "Add Agent — Billzo Office Management" },
-      { name: "description", content: "Create a complete Billzo agent profile with documents and bank details." },
-      { property: "og:title", content: "Add Agent — Billzo Office Management" },
-      { property: "og:description", content: "Create a complete Billzo agent profile." },
-    ],
-  }),
   component: NewAgent,
 });
 

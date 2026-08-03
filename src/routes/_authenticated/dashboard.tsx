@@ -9,14 +9,6 @@ import { formatTime, hoursLabel, todayISO } from "@/lib/billzo";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "Dashboard — Billzo Office Management" },
-      { name: "description", content: "Live agent headcount and today's attendance overview in Billzo." },
-      { property: "og:title", content: "Dashboard — Billzo Office Management" },
-      { property: "og:description", content: "Live agent headcount and today's attendance overview." },
-    ],
-  }),
   component: Dashboard,
 });
 

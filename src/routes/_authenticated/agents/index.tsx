@@ -14,14 +14,6 @@ import { exportCSV, exportExcel, exportPDF, type ExportColumn } from "@/lib/expo
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/agents/")({
-  head: () => ({
-    meta: [
-      { title: "Agents Directory — Billzo Office Management" },
-      { name: "description", content: "Search, filter and manage every Billzo agent profile in one place." },
-      { property: "og:title", content: "Agents Directory — Billzo Office Management" },
-      { property: "og:description", content: "Search, filter and manage every Billzo agent profile." },
-    ],
-  }),
   component: AgentsPage,
 });
 

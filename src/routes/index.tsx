@@ -11,21 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Billzo Sign In — Office Management System" },
-      {
-        name: "description",
-        content:
-          "Sign in to Billzo Office Management System to manage agent profiles, documents, and daily attendance.",
-      },
-      { property: "og:title", content: "Billzo Sign In — Office Management System" },
-      {
-        property: "og:description",
-        content: "Secure access to Billzo agent management and attendance tracking.",
-      },
-    ],
-  }),
   component: AuthPage,
 });
 

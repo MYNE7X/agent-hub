@@ -13,14 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/attendance/")({
-  head: () => ({
-    meta: [
-      { title: "Attendance — Billzo Office Management" },
-      { name: "description", content: "Clock in, clock out and review daily attendance across the Billzo team." },
-      { property: "og:title", content: "Attendance — Billzo Office Management" },
-      { property: "og:description", content: "Clock in, clock out and review daily attendance." },
-    ],
-  }),
   component: AttendancePage,
 });
 

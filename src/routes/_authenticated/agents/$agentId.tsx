@@ -8,14 +8,6 @@ import { useAgent, useSaveAgent } from "@/lib/queries";
 import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/agents/$agentId")({
-  head: () => ({
-    meta: [
-      { title: "Agent Profile — Billzo Office Management" },
-      { name: "description", content: "View and edit a Billzo agent profile, documents and attendance history." },
-      { property: "og:title", content: "Agent Profile — Billzo Office Management" },
-      { property: "og:description", content: "View and edit a Billzo agent profile and documents." },
-    ],
-  }),
   component: AgentDetail,
 });
 
