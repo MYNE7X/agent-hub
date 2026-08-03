@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { AgentForm } from "@/components/agents/AgentForm";
 import { DocumentManager } from "@/components/agents/DocumentManager";
 import { LinkAccountPanel } from "@/components/agents/LinkAccountPanel";
+import { SetPasswordPanel } from "@/components/agents/SetPasswordPanel";
 import { StatusBadge } from "@/components/billzo/StatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgent, useSaveAgent } from "@/lib/queries";
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/agents/$agentId")({
 function AgentDetail() {
   const { agentId } = useParams({ from: "/_authenticated/agents/$agentId" });
   const { isStaff, isSuperAdmin } = useAuth();
-  const { data: agent, isLoading } = useAgent(agentId);
+  const { data: agent, isLoading, refetch } = useAgent(agentId);
   const save = useSaveAgent();
 
   if (isLoading) {
@@ -55,6 +56,7 @@ function AgentDetail() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           {isStaff && <TabsTrigger value="account">Link Account</TabsTrigger>}
+          {isSuperAdmin && <TabsTrigger value="login">Login / Password</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="profile" className="mt-4">
@@ -89,6 +91,28 @@ function AgentDetail() {
               <LinkAccountPanel
                 agentId={agentId}
                 currentUserId={agent.user_id}
+              />
+            </div>
+          </TabsContent>
+        )}
+
+        {isSuperAdmin && (
+          <TabsContent value="login" className="mt-4">
+            <div className="glass rounded-xl p-5">
+              <div className="mb-4">
+                <h2 className="font-semibold">Login Account & Password</h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  {agent.user_id
+                    ? "This agent has a linked account. You can force a temporary password reset."
+                    : "Create a login account for this agent with a temporary password. They will be required to set a new password on first login."}
+                </p>
+              </div>
+              <SetPasswordPanel
+                agentId={agentId}
+                agentEmail={agent.email}
+                agentName={agent.full_name}
+                currentUserId={agent.user_id}
+                onAccountCreated={() => void refetch()}
               />
             </div>
           </TabsContent>

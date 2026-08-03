@@ -244,6 +244,40 @@ export function useUnlinkedProfiles(currentLinkedId?: string | null) {
   });
 }
 
+/** Fetch all profiles that are not yet approved (pending self-signup approvals). */
+export function usePendingUsers() {
+  return useQuery({
+    queryKey: ["pending-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url")
+        .eq("is_approved", false)
+        .order("id");
+      if (error) throw error;
+      return (data ?? []) as { id: string; full_name: string | null; email: string | null; avatar_url: string | null }[];
+    },
+  });
+}
+
+/** Approve a user by setting is_approved = true on their profile. */
+export function useApproveUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ is_approved: true })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ["pending-users"] });
+      void qc.invalidateQueries({ queryKey: ["staff-profiles"] });
+    },
+  });
+}
+
 /** Link (or unlink) a user account to an agent by setting agents.user_id. */
 export function useLinkAgent() {
   const qc = useQueryClient();

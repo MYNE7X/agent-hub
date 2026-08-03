@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedMyProfileRouteImport } from './routes/_authenticated/my-profile'
+import { Route as AuthenticatedPendingApprovalsRouteImport } from './routes/_authenticated/pending-approvals'
 import { Route as AuthenticatedAgentsIndexRouteImport } from './routes/_authenticated/agents/index'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents/$agentId'
 import { Route as AuthenticatedAgentsNewRouteImport } from './routes/_authenticated/agents/new'
@@ -37,6 +38,12 @@ const AuthenticatedMyProfileRoute = AuthenticatedMyProfileRouteImport.update({
   path: '/my-profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPendingApprovalsRoute =
+  AuthenticatedPendingApprovalsRouteImport.update({
+    id: '/pending-approvals',
+    path: '/pending-approvals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAgentsIndexRoute =
   AuthenticatedAgentsIndexRouteImport.update({
     id: '/agents/',
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-profile': typeof AuthenticatedMyProfileRoute
+  '/pending-approvals': typeof AuthenticatedPendingApprovalsRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/agents/new': typeof AuthenticatedAgentsNewRoute
   '/agents/': typeof AuthenticatedAgentsIndexRoute
@@ -74,6 +82,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-profile': typeof AuthenticatedMyProfileRoute
+  '/pending-approvals': typeof AuthenticatedPendingApprovalsRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/agents/new': typeof AuthenticatedAgentsNewRoute
   '/agents': typeof AuthenticatedAgentsIndexRoute
@@ -85,6 +94,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-profile': typeof AuthenticatedMyProfileRoute
+  '/_authenticated/pending-approvals': typeof AuthenticatedPendingApprovalsRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/agents/new': typeof AuthenticatedAgentsNewRoute
   '/_authenticated/agents/': typeof AuthenticatedAgentsIndexRoute
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/my-profile'
+    | '/pending-approvals'
     | '/agents/$agentId'
     | '/agents/new'
     | '/agents/'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/my-profile'
+    | '/pending-approvals'
     | '/agents/$agentId'
     | '/agents/new'
     | '/agents'
@@ -115,6 +127,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-profile'
+    | '/_authenticated/pending-approvals'
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/agents/new'
     | '/_authenticated/agents/'
@@ -156,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pending-approvals': {
+      id: '/_authenticated/pending-approvals'
+      path: '/pending-approvals'
+      fullPath: '/pending-approvals'
+      preLoaderRoute: typeof AuthenticatedPendingApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/agents/': {
       id: '/_authenticated/agents/'
       path: '/agents'
@@ -190,6 +210,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMyProfileRoute: typeof AuthenticatedMyProfileRoute
+  AuthenticatedPendingApprovalsRoute: typeof AuthenticatedPendingApprovalsRoute
   AuthenticatedAgentsAgentIdRoute: typeof AuthenticatedAgentsAgentIdRoute
   AuthenticatedAgentsNewRoute: typeof AuthenticatedAgentsNewRoute
   AuthenticatedAgentsIndexRoute: typeof AuthenticatedAgentsIndexRoute
@@ -199,6 +220,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMyProfileRoute: AuthenticatedMyProfileRoute,
+  AuthenticatedPendingApprovalsRoute: AuthenticatedPendingApprovalsRoute,
   AuthenticatedAgentsAgentIdRoute: AuthenticatedAgentsAgentIdRoute,
   AuthenticatedAgentsNewRoute: AuthenticatedAgentsNewRoute,
   AuthenticatedAgentsIndexRoute: AuthenticatedAgentsIndexRoute,

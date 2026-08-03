@@ -111,6 +111,7 @@ function AuthPage() {
             The first account created becomes the Super Admin.
           </p>
 
+
           <Tabs defaultValue="signin" className="mt-6">
             <TabsList className="grid w-full grid-cols-2 bg-secondary/60">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -150,6 +151,10 @@ function AuthPage() {
             </TabsContent>
 
             <TabsContent value="signup">
+              <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-[12px] text-amber-300/90 space-y-1">
+                <p className="font-semibold text-amber-300">⚠ Account pending approval</p>
+                <p>Self-registered accounts must be approved by a Super Admin or Admin before accessing the system. Contact your administrator after signing up.</p>
+              </div>
               <form onSubmit={signUp} className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>

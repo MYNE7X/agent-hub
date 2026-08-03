@@ -10,6 +10,8 @@ type Profile = {
   email: string | null;
   avatar_url: string | null;
   phone: string | null;
+  must_change_password: boolean;
+  is_approved: boolean;
 };
 
 type AuthState = {
@@ -22,6 +24,8 @@ type AuthState = {
   isAdmin: boolean;
   isStaff: boolean;
   isAgentOnly: boolean;
+  mustChangePassword: boolean;
+  isApproved: boolean;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -41,10 +45,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     const [{ data: p }, { data: r }] = await Promise.all([
-      supabase.from("profiles").select("id, full_name, email, avatar_url, phone").eq("id", userId).maybeSingle(),
+      supabase
+        .from("profiles")
+        .select("id, full_name, email, avatar_url, phone, must_change_password, is_approved")
+        .eq("id", userId)
+        .maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
     ]);
-    setProfile((p as Profile) ?? null);
+    setProfile(
+      p
+        ? {
+            id: p.id,
+            full_name: p.full_name,
+            email: p.email,
+            avatar_url: p.avatar_url,
+            phone: p.phone,
+            must_change_password: p.must_change_password ?? false,
+            is_approved: p.is_approved ?? false,
+          }
+        : null,
+    );
     setRoles(((r ?? []) as { role: AppRole }[]).map((x) => x.role));
   };
 
@@ -91,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin,
       isStaff: isSuperAdmin || isAdmin,
       isAgentOnly: !isSuperAdmin && !isAdmin,
+      mustChangePassword: profile?.must_change_password ?? false,
+      isApproved: profile?.is_approved ?? false,
       refresh: async () => loadMeta(session?.user.id),
       signOut: async () => {
         await supabase.auth.signOut();

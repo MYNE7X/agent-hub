@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   Building2,
+  UserCog,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ const NAV: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/agents", label: "Agents", icon: Users, staffOnly: true },
   { to: "/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/pending-approvals", label: "Pending Approvals", icon: UserCog, staffOnly: true },
   { to: "/admins", label: "Admins & Roles", icon: ShieldCheck, superOnly: true },
   { to: "/my-profile", label: "My Profile", icon: UserCircle },
 ];
