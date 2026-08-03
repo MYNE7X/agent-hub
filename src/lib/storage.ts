@@ -9,7 +9,7 @@ export async function uploadAgentFile(agentId: string, category: string, file: F
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     cacheControl: "3600",
     upsert: false,
-    contentType: file.type || undefined,
+    contentType: file.type || "application/octet-stream",
   });
   if (error) throw error;
   return path;
