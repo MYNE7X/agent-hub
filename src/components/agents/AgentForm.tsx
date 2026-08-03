@@ -195,7 +195,7 @@ export function AgentForm({
     for (const [k, v] of Object.entries(values)) {
       payload[k] = v === "" ? null : v;
     }
-    payload.salary = values.salary === "" || values.salary == null ? null : Number(values.salary);
+    payload["salary"] = values.salary === "" || values.salary == null ? null : Number(values.salary);
     await onSubmit(payload);
   };
 
